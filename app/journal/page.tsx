@@ -2,17 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 type Tag =
-  | "work"
-  | "dsa"
-  | "sysdes"
-  | "project"
-  | "prep"
-  | "workout"
-  | "break"
-  | "personal"
-  | "sleep";
+  | "work" | "dsa" | "sysdes" | "project" | "prep"
+  | "workout" | "break" | "personal" | "sleep";
 
 type Log = {
   id: string;
@@ -26,17 +19,17 @@ type Log = {
   intensity: number;
 };
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 const TAG_CONFIG: Record<Tag, { label: string; emoji: string; color: string; bg: string; group: string }> = {
-  work:     { label: "Work",      emoji: "💼", color: "#4f98a3", bg: "rgba(79,152,163,0.15)",   group: "job" },
-  dsa:      { label: "DSA",       emoji: "🧩", color: "#6daa45", bg: "rgba(109,170,69,0.15)",   group: "prep" },
-  sysdes:   { label: "Sys Des",   emoji: "🏗️", color: "#a86fdf", bg: "rgba(168,111,223,0.15)",  group: "prep" },
-  project:  { label: "Project",   emoji: "🚀", color: "#5591c7", bg: "rgba(85,145,199,0.15)",   group: "prep" },
-  prep:     { label: "Prep",      emoji: "📚", color: "#fdab43", bg: "rgba(253,171,67,0.15)",   group: "prep" },
-  workout:  { label: "Workout",   emoji: "💪", color: "#dd6974", bg: "rgba(221,105,116,0.15)",  group: "life" },
-  break:    { label: "Break",     emoji: "☕", color: "#e8af34", bg: "rgba(232,175,52,0.15)",   group: "life" },
-  personal: { label: "Personal",  emoji: "🌱", color: "#797876", bg: "rgba(121,120,118,0.15)",  group: "life" },
-  sleep:    { label: "Sleep",     emoji: "🌙", color: "#393836", bg: "rgba(57,56,54,0.5)",      group: "life" },
+  work:     { label: "Work",     emoji: "💼", color: "#4f98a3", bg: "rgba(79,152,163,0.15)",  group: "job"  },
+  dsa:      { label: "DSA",      emoji: "🧩", color: "#6daa45", bg: "rgba(109,170,69,0.15)",  group: "prep" },
+  sysdes:   { label: "Sys Des",  emoji: "🏗️", color: "#a86fdf", bg: "rgba(168,111,223,0.15)", group: "prep" },
+  project:  { label: "Project",  emoji: "🚀", color: "#5591c7", bg: "rgba(85,145,199,0.15)",  group: "prep" },
+  prep:     { label: "Prep",     emoji: "📚", color: "#fdab43", bg: "rgba(253,171,67,0.15)",  group: "prep" },
+  workout:  { label: "Workout",  emoji: "💪", color: "#dd6974", bg: "rgba(221,105,116,0.15)", group: "life" },
+  break:    { label: "Break",    emoji: "☕", color: "#e8af34", bg: "rgba(232,175,52,0.15)",  group: "life" },
+  personal: { label: "Personal", emoji: "🌱", color: "#797876", bg: "rgba(121,120,118,0.15)", group: "life" },
+  sleep:    { label: "Sleep",    emoji: "🌙", color: "#393836", bg: "rgba(57,56,54,0.5)",     group: "life" },
 };
 
 const TAG_GROUPS = [
@@ -47,7 +40,7 @@ const TAG_GROUPS = [
 
 const INTENSITY_LABEL: Record<number, string> = { 1: "Low", 2: "Light", 3: "Medium", 4: "High", 5: "Deep" };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function toDateStr(d: Date) { return d.toISOString().split("T")[0]; }
 function pad(n: number)     { return String(n).padStart(2, "0"); }
 function to24(h: number, ampm: "AM" | "PM") {
@@ -73,7 +66,7 @@ function durationLabel(startH: number, startM: number, endH: number, endM: numbe
   return `${h > 0 ? `${h}h ` : ""}${m > 0 ? `${m}m` : ""}`.trim();
 }
 
-// ─── TimeInput (12h picker) ──────────────────────────────────────────────────
+// ─── TimeInput (12h picker) ───────────────────────────────────────────────────
 function TimeInput({
   hour24, minute, onChange, label,
 }: {
@@ -83,8 +76,6 @@ function TimeInput({
   label: string;
 }) {
   const { h, ampm } = from24(hour24);
-  const hourRef = useRef<HTMLInputElement>(null);
-  const minRef  = useRef<HTMLInputElement>(null);
 
   const setHour = (val: string) => {
     let n = parseInt(val, 10);
@@ -104,49 +95,52 @@ function TimeInput({
   };
 
   const segStyle: React.CSSProperties = {
-    width: 36, height: 40,
+    width: 44, height: 44,
     background: "var(--color-surface-offset)",
     border: "1px solid var(--color-border)",
     borderRadius: 8,
     color: "var(--color-text)",
     fontFamily: "'Geist Mono', monospace",
-    fontSize: 15, fontWeight: 600,
+    fontSize: 16, fontWeight: 600,
     textAlign: "center",
     outline: "none",
-  };
+    WebkitAppearance: "none",
+    MozAppearance: "textfield",
+  } as React.CSSProperties;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 5, flex: 1 }}>
       <label style={{ fontSize: 10, color: "var(--color-text-faint)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em" }}>{label}</label>
-      <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
         <input
-          ref={hourRef}
           type="number" min={1} max={12} value={h}
           onChange={(e) => setHour(e.target.value)}
           onFocus={(e) => e.target.select()}
           style={segStyle}
+          inputMode="numeric"
         />
-        <span style={{ color: "var(--color-text-faint)", fontFamily: "monospace", fontWeight: 700, fontSize: 16, paddingBottom: 2 }}>:</span>
+        <span style={{ color: "var(--color-text-faint)", fontFamily: "monospace", fontWeight: 700, fontSize: 18 }}>:</span>
         <input
-          ref={minRef}
           type="number" min={0} max={59} value={pad(minute)}
           onChange={(e) => setMin(e.target.value)}
           onFocus={(e) => e.target.select()}
           style={segStyle}
+          inputMode="numeric"
         />
         <button
           onClick={toggleAmPm}
           style={{
-            height: 40, padding: "0 8px",
+            height: 44, padding: "0 10px",
             borderRadius: 8,
             border: "1px solid var(--color-border)",
             background: ampm === "PM" ? "rgba(79,152,163,0.15)" : "var(--color-surface-offset)",
             color: ampm === "PM" ? "var(--color-primary)" : "var(--color-text-muted)",
             fontFamily: "'Geist Mono', monospace",
-            fontSize: 11, fontWeight: 700,
+            fontSize: 12, fontWeight: 700,
             cursor: "pointer",
             transition: "all 140ms ease",
             letterSpacing: "0.04em",
+            flexShrink: 0,
           }}
         >{ampm}</button>
       </div>
@@ -154,7 +148,7 @@ function TimeInput({
   );
 }
 
-// ─── Logger Panel (Left) ──────────────────────────────────────────────────────
+// ─── Logger Panel ─────────────────────────────────────────────────────────────
 function LoggerPanel({
   logs, onAdd, onDelete, selectedDate,
 }: {
@@ -171,15 +165,15 @@ function LoggerPanel({
   const defaultSH = lastLog ? (lastLog.minute_to >= 59 ? (lastLog.hour + 1) % 24 : lastLog.hour) : (isToday ? now.getHours() : 0);
   const defaultSM = lastLog ? (lastLog.minute_to >= 59 ? 0 : lastLog.minute_to + 1) : (isToday ? now.getMinutes() : 0);
 
-  const [startH, setStartH] = useState(defaultSH);
-  const [startM, setStartM] = useState(defaultSM);
-  const [endH,   setEndH]   = useState(defaultSH);
-  const [endM,   setEndM]   = useState(Math.min(defaultSM + 30, 59));
-  const [title,  setTitle]  = useState("");
-  const [tag,    setTag]    = useState<Tag>("work");
+  const [startH,    setStartH]    = useState(defaultSH);
+  const [startM,    setStartM]    = useState(defaultSM);
+  const [endH,      setEndH]      = useState(defaultSH);
+  const [endM,      setEndM]      = useState(Math.min(defaultSM + 30, 59));
+  const [title,     setTitle]     = useState("");
+  const [tag,       setTag]       = useState<Tag>("work");
   const [intensity, setIntensity] = useState(3);
-  const [note,   setNote]   = useState("");
-  const [saving, setSaving] = useState(false);
+  const [note,      setNote]      = useState("");
+  const [saving,    setSaving]    = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -206,36 +200,40 @@ function LoggerPanel({
     setDeletingId(null);
   };
 
-  const dur = durationLabel(startH, startM, endH, endM);
-
+  const dur    = durationLabel(startH, startM, endH, endM);
   const sorted = [...logs].sort((a, b) => minsOf(a.hour, a.minute_from) - minsOf(b.hour, b.minute_from));
 
   const inputBase: React.CSSProperties = {
-    width: "100%", padding: "9px 12px",
-    borderRadius: 8, border: "1px solid var(--color-border)",
+    width: "100%", padding: "11px 14px",
+    borderRadius: 10, border: "1px solid var(--color-border)",
     background: "var(--color-surface-offset)",
-    color: "var(--color-text)", fontSize: 13,
+    color: "var(--color-text)", fontSize: 15,
     outline: "none", fontFamily: "inherit",
     transition: "border-color 150ms ease, box-shadow 150ms ease",
-  };
+    WebkitAppearance: "none",
+  } as React.CSSProperties;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18, height: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
       {/* ── Entry Form ── */}
-      <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
-
+      <div style={{
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+        borderRadius: 16, padding: 16,
+        display: "flex", flexDirection: "column", gap: 14,
+      }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#4f98a3", animation: "pulse 2s infinite" }} />
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#4f98a3", animation: "pulse 2s infinite", flexShrink: 0 }} />
           <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--color-text-muted)", textTransform: "uppercase" }}>New Entry</span>
         </div>
 
         {/* Time row */}
         <div style={{ display: "flex", alignItems: "flex-end", gap: 10 }}>
           <TimeInput label="From" hour24={startH} minute={startM} onChange={(h, m) => { setStartH(h); setStartM(m); }} />
-          <div style={{ color: "var(--color-text-faint)", fontSize: 18, paddingBottom: 8, flexShrink: 0 }}>→</div>
-          <TimeInput label="To"   hour24={endH}   minute={endM}   onChange={(h, m) => { setEndH(h); setEndM(m); }} />
+          <div style={{ color: "var(--color-text-faint)", fontSize: 18, paddingBottom: 10, flexShrink: 0 }}>→</div>
+          <TimeInput label="To"   hour24={endH}   minute={endM}   onChange={(h, m) => { setEndH(h);   setEndM(m); }} />
         </div>
 
         {/* Duration pill */}
@@ -252,7 +250,7 @@ function LoggerPanel({
           autoFocus value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSave()}
-          placeholder="What did you do? (Enter to save)"
+          placeholder="What did you do?"
           style={inputBase}
         />
 
@@ -260,18 +258,20 @@ function LoggerPanel({
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {TAG_GROUPS.map((g) => (
             <div key={g.id} style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 9, color: "var(--color-text-faint)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", minWidth: 46 }}>{g.label}</span>
+              <span style={{ fontSize: 9, color: "var(--color-text-faint)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", minWidth: 40 }}>{g.label}</span>
               {g.tags.map((t) => {
-                const cfg = TAG_CONFIG[t];
+                const cfg    = TAG_CONFIG[t];
                 const active = tag === t;
                 return (
                   <button key={t} onClick={() => setTag(t)} style={{
-                    padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600, cursor: "pointer",
+                    minHeight: 34, padding: "4px 12px", borderRadius: 20,
+                    fontSize: 12, fontWeight: 600, cursor: "pointer",
                     border: `1px solid ${active ? cfg.color : "var(--color-border)"}`,
                     background: active ? cfg.bg : "transparent",
                     color: active ? cfg.color : "var(--color-text-faint)",
                     transition: "all 140ms ease",
-                  }}>
+                    WebkitTapHighlightColor: "transparent",
+                  } as React.CSSProperties}>
                     {cfg.emoji} {cfg.label}
                   </button>
                 );
@@ -282,18 +282,19 @@ function LoggerPanel({
 
         {/* Intensity */}
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-          <span style={{ fontSize: 10, color: "var(--color-text-faint)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", minWidth: 54 }}>Focus</span>
+          <span style={{ fontSize: 10, color: "var(--color-text-faint)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", minWidth: 44, flexShrink: 0 }}>Focus</span>
           {[1,2,3,4,5].map((n) => {
             const active = intensity >= n;
-            const cfg = TAG_CONFIG[tag];
+            const cfg    = TAG_CONFIG[tag];
             return (
               <button key={n} onClick={() => setIntensity(n)} title={INTENSITY_LABEL[n]} style={{
-                flex: 1, height: 28, borderRadius: 6, fontSize: 10, fontWeight: 700, cursor: "pointer",
+                flex: 1, height: 34, borderRadius: 6, fontSize: 10, fontWeight: 700, cursor: "pointer",
                 border: `1px solid ${active ? cfg.color : "var(--color-border)"}`,
                 background: active ? cfg.bg : "transparent",
                 color: active ? cfg.color : "var(--color-text-faint)",
                 transition: "all 140ms ease",
-              }}>{INTENSITY_LABEL[n]}</button>
+                WebkitTapHighlightColor: "transparent",
+              } as React.CSSProperties}>{INTENSITY_LABEL[n]}</button>
             );
           })}
         </div>
@@ -305,37 +306,41 @@ function LoggerPanel({
 
         {/* Save */}
         <button onClick={handleSave} disabled={saving || !title.trim()} style={{
-          padding: "10px 0", borderRadius: 10, fontSize: 13, fontWeight: 700,
+          padding: "13px 0", borderRadius: 12, fontSize: 15, fontWeight: 700,
           cursor: saving || !title.trim() ? "not-allowed" : "pointer",
           border: "none", background: "var(--color-primary)", color: "#fff",
           opacity: saving || !title.trim() ? 0.4 : 1,
           transition: "opacity 150ms ease",
-        }}>
+          minHeight: 48,
+          WebkitTapHighlightColor: "transparent",
+        } as React.CSSProperties}>
           {saving ? "Saving…" : "Log Entry →"}
         </button>
       </div>
 
       {/* ── Log Feed ── */}
-      <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--color-text-faint)", textTransform: "uppercase", marginBottom: 4 }}>
           {sorted.length} {sorted.length === 1 ? "entry" : "entries"} logged
         </p>
+
         {sorted.length === 0 && (
-          <div style={{ textAlign: "center", padding: "32px 0", color: "var(--color-text-faint)", fontSize: 13 }}>
+          <div style={{ textAlign: "center", padding: "40px 0", color: "var(--color-text-faint)", fontSize: 13 }}>
             No entries yet. Start logging ↑
           </div>
         )}
+
         {sorted.map((log) => {
           const cfg = TAG_CONFIG[log.tag];
           const dur = durationLabel(log.hour, log.minute_from, log.hour, log.minute_to) || "–";
           return (
             <div key={log.id} style={{
-              display: "grid", gridTemplateColumns: "56px 1fr auto", gap: 10,
-              alignItems: "center", padding: "10px 12px",
-              borderRadius: 10, background: "var(--color-surface)", border: "1px solid var(--color-border)",
+              display: "grid", gridTemplateColumns: "52px 1fr 36px", gap: 10,
+              alignItems: "center", padding: "12px 12px",
+              borderRadius: 12, background: "var(--color-surface)", border: "1px solid var(--color-border)",
             }}>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: 11, color: cfg.color, fontWeight: 700 }}>
+                <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: 12, color: cfg.color, fontWeight: 700 }}>
                   {formatTime12(log.hour, log.minute_from).split(" ")[0]}
                 </div>
                 <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: 9, color: "var(--color-text-faint)" }}>
@@ -343,28 +348,34 @@ function LoggerPanel({
                 </div>
                 <div style={{ fontSize: 9, color: "var(--color-text-faint)", marginTop: 1 }}>{dur}</div>
               </div>
-              <div style={{ overflow: "hidden" }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{log.title}</div>
-                <div style={{ display: "flex", gap: 5, alignItems: "center", marginTop: 3 }}>
-                  <span style={{ fontSize: 10, padding: "1px 7px", borderRadius: 10, background: cfg.bg, color: cfg.color, fontWeight: 600 }}>
+              <div style={{ overflow: "hidden", minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{log.title}</div>
+                <div style={{ display: "flex", gap: 5, alignItems: "center", marginTop: 4, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 10, background: cfg.bg, color: cfg.color, fontWeight: 600, flexShrink: 0 }}>
                     {cfg.emoji} {cfg.label}
                   </span>
                   <div style={{ display: "flex", gap: 2 }}>
                     {[1,2,3,4,5].map((n) => (
-                      <div key={n} style={{ width: 5, height: 5, borderRadius: "50%", background: n <= log.intensity ? cfg.color : "var(--color-border)" }} />
+                      <div key={n} style={{ width: 6, height: 6, borderRadius: "50%", background: n <= log.intensity ? cfg.color : "var(--color-border)" }} />
                     ))}
                   </div>
-                  {log.note && <span style={{ fontSize: 10, color: "var(--color-text-faint)", fontStyle: "italic", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 100 }}>{log.note}</span>}
                 </div>
+                {log.note && (
+                  <div style={{ fontSize: 11, color: "var(--color-text-faint)", fontStyle: "italic", marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{log.note}</div>
+                )}
               </div>
-              <button onClick={() => handleDelete(log.id)} disabled={deletingId === log.id} style={{
-                width: 26, height: 26, borderRadius: 6, border: "1px solid var(--color-border)",
-                background: "transparent", color: "var(--color-text-faint)", cursor: "pointer",
-                fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0, transition: "all 150ms ease",
-              }}
-              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "var(--color-error)"; el.style.color = "var(--color-error)"; }}
-              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "var(--color-border)"; el.style.color = "var(--color-text-faint)"; }}
+              <button
+                onClick={() => handleDelete(log.id)}
+                disabled={deletingId === log.id}
+                style={{
+                  width: 36, height: 36, borderRadius: 8, border: "1px solid var(--color-border)",
+                  background: "transparent", color: "var(--color-text-faint)", cursor: "pointer",
+                  fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0, transition: "all 150ms ease",
+                  WebkitTapHighlightColor: "transparent",
+                } as React.CSSProperties}
+                onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "var(--color-error)"; el.style.color = "var(--color-error)"; }}
+                onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "var(--color-border)"; el.style.color = "var(--color-text-faint)"; }}
               >×</button>
             </div>
           );
@@ -374,18 +385,18 @@ function LoggerPanel({
   );
 }
 
-// ─── Stat Card ───────────────────────────────────────────────────────────────
+// ─── Stat Card ────────────────────────────────────────────────────────────────
 function StatCard({ label, value, sub, color }: { label: string; value: string | number; sub?: string; color?: string }) {
   return (
     <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: "14px 14px 12px" }}>
       <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: 20, fontWeight: 700, color: color || "var(--color-text)", letterSpacing: "-0.02em" }}>{value}</div>
       <div style={{ fontSize: 10, color: "var(--color-text-faint)", textTransform: "uppercase", letterSpacing: "0.07em", marginTop: 3 }}>{label}</div>
-      {sub && <div style={{ fontSize: 10, color: "var(--color-text-muted)", marginTop: 4 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 11, color: "var(--color-text-muted)", marginTop: 4 }}>{sub}</div>}
     </div>
   );
 }
 
-// ─── Dashboard Panel (Right) ──────────────────────────────────────────────────
+// ─── Dashboard Panel ──────────────────────────────────────────────────────────
 function DashboardPanel({ logs }: { logs: Log[] }) {
   const totalMins  = logs.reduce((acc, l) => acc + Math.max(0, minsOf(l.hour, l.minute_to) - minsOf(l.hour, l.minute_from)), 0);
   const totalHrs   = (totalMins / 60).toFixed(1);
@@ -420,23 +431,23 @@ function DashboardPanel({ logs }: { logs: Log[] }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
-      {/* ── KPI Grid 2x3 ── */}
+      {/* ── KPI Grid ── */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-        <StatCard label="Hrs Logged"   value={totalHrs}         color="var(--color-primary)" sub={`${logs.length} entries`} />
-        <StatCard label="Avg Focus"    value={avgInt ? `${avgInt.toFixed(1)}/5` : "—"} color={intensityColor} sub={avgInt >= 4 ? "🔥 Deep work day" : avgInt >= 3 ? "✅ Good focus" : avgInt > 0 ? "⚡ Light day" : undefined} />
-        <StatCard label="Job Prep"     value={`${Math.floor(prepMins / 60)}h ${prepMins % 60}m`} color="#a86fdf" sub={`${prepScore}% of day`} />
-        <StatCard label="Job (Work)"   value={`${Math.floor(workMins / 60)}h ${workMins % 60}m`} color="#4f98a3" sub={workMins ? `${Math.round((workMins/totalMins)*100)}% of day` : "Not logged"} />
-        <StatCard label="Peak Hour"    value={peakHour?.score ? formatTime12(peakHour.h, 0).replace(":00", "") : "—"} color="var(--color-gold)" sub={peakHour?.score ? `Score ${peakHour.score}` : undefined} />
-        <StatCard label="Biggest Gap"  value={maxGap ? `${maxGap}m` : "—"} color={maxGap > 60 ? "var(--color-error)" : "var(--color-text-muted)"} sub={maxGap > 60 ? "⚠ Large gap" : maxGap > 0 ? "Minimal gaps" : undefined} />
+        <StatCard label="Hrs Logged"  value={totalHrs}        color="var(--color-primary)" sub={`${logs.length} entries`} />
+        <StatCard label="Avg Focus"   value={avgInt ? `${avgInt.toFixed(1)}/5` : "—"} color={intensityColor} sub={avgInt >= 4 ? "🔥 Deep work" : avgInt >= 3 ? "✅ Good focus" : avgInt > 0 ? "⚡ Light day" : undefined} />
+        <StatCard label="Job Prep"    value={`${Math.floor(prepMins/60)}h ${prepMins%60}m`} color="#a86fdf" sub={`${prepScore}% of day`} />
+        <StatCard label="Work"        value={`${Math.floor(workMins/60)}h ${workMins%60}m`} color="#4f98a3" sub={workMins ? `${Math.round((workMins/totalMins)*100)}%` : "Not logged"} />
+        <StatCard label="Peak Hour"   value={peakHour?.score ? formatTime12(peakHour.h, 0).replace(":00","") : "—"} color="var(--color-gold)" sub={peakHour?.score ? `Score ${peakHour.score}` : undefined} />
+        <StatCard label="Biggest Gap" value={maxGap ? `${maxGap}m` : "—"} color={maxGap > 60 ? "var(--color-error)" : "var(--color-text-muted)"} sub={maxGap > 60 ? "⚠ Large gap" : maxGap > 0 ? "Minimal" : undefined} />
       </div>
 
       {/* ── Timeline Bar ── */}
       <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: 14 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, alignItems: "center" }}>
           <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--color-text-faint)", textTransform: "uppercase" }}>Day Timeline</p>
           {dominantTag && (
             <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 20, background: TAG_CONFIG[dominantTag].bg, color: TAG_CONFIG[dominantTag].color, fontWeight: 600 }}>
-              {TAG_CONFIG[dominantTag].emoji} {TAG_CONFIG[dominantTag].label} day
+              {TAG_CONFIG[dominantTag].emoji} {TAG_CONFIG[dominantTag].label}
             </span>
           )}
         </div>
@@ -453,17 +464,17 @@ function DashboardPanel({ logs }: { logs: Log[] }) {
             );
           })}
           {(() => {
-            const n = new Date();
+            const n   = new Date();
             const pct = (minsOf(n.getHours(), n.getMinutes()) / 1440) * 100;
             return <div style={{ position: "absolute", top: 0, bottom: 0, left: `${pct}%`, width: 2, background: "#fff", opacity: 0.6, borderRadius: 1 }} />;
           })()}
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 5 }}>
-          {["12am","3am","6am","9am","12pm","3pm","6pm","9pm",""].map((l, i) => (
+          {["12a","3a","6a","9a","12p","3p","6p","9p",""].map((l, i) => (
             <span key={i} style={{ fontSize: 9, color: "var(--color-text-faint)", fontFamily: "'Geist Mono', monospace" }}>{l}</span>
           ))}
         </div>
-        <div style={{ display: "flex", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
           {(Object.keys(TAG_CONFIG) as Tag[]).filter(t => tagMins[t]).map(t => (
             <div key={t} style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <div style={{ width: 8, height: 8, borderRadius: 2, background: TAG_CONFIG[t].color }} />
@@ -475,20 +486,20 @@ function DashboardPanel({ logs }: { logs: Log[] }) {
 
       {/* ── 24h Heatmap ── */}
       <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: 14 }}>
-        <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--color-text-faint)", textTransform: "uppercase", marginBottom: 10 }}>24h Activity Heatmap</p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(24, 1fr)", gap: 3 }}>
+        <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--color-text-faint)", textTransform: "uppercase", marginBottom: 10 }}>24h Heatmap</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(24, 1fr)", gap: 2 }}>
           {Array.from({ length: 24 }, (_, h) => {
             const hLogs  = hourMap[h];
-            const topTag = hLogs.sort((a, b) => b.intensity - a.intensity)[0]?.tag;
+            const topTag = [...hLogs].sort((a, b) => b.intensity - a.intensity)[0]?.tag;
             const fill   = hLogs.length > 0 ? (hLogs.reduce((a, l) => a + l.intensity, 0) / hLogs.length / 5) : 0;
             return (
               <div key={h} title={`${formatTime12(h, 0)} — ${hLogs.length} entries`} style={{
-                height: 36, borderRadius: 4, overflow: "hidden",
+                height: 32, borderRadius: 3, overflow: "hidden",
                 background: "var(--color-surface-offset)",
                 border: `1px solid ${hLogs.length ? TAG_CONFIG[topTag!].color + "50" : "var(--color-divider)"}`,
                 position: "relative", display: "flex", alignItems: "flex-end",
               }}>
-                {fill > 0 && <div style={{ width: "100%", height: `${fill * 100}%`, background: TAG_CONFIG[topTag!].color, opacity: 0.75, borderRadius: 3 }} />}
+                {fill > 0 && <div style={{ width: "100%", height: `${fill * 100}%`, background: TAG_CONFIG[topTag!].color, opacity: 0.75, borderRadius: 2 }} />}
               </div>
             );
           })}
@@ -515,12 +526,12 @@ function DashboardPanel({ logs }: { logs: Log[] }) {
                 <div key={t}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontSize: 12 }}>{cfg.emoji}</span>
-                      <span style={{ fontSize: 12, color: cfg.color, fontWeight: 600 }}>{cfg.label}</span>
+                      <span style={{ fontSize: 13 }}>{cfg.emoji}</span>
+                      <span style={{ fontSize: 13, color: cfg.color, fontWeight: 600 }}>{cfg.label}</span>
                     </div>
                     <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                       <span style={{ fontSize: 11, color: "var(--color-text-muted)", fontFamily: "'Geist Mono', monospace" }}>
-                        {Math.floor(mins / 60) > 0 ? `${Math.floor(mins / 60)}h ` : ""}{mins % 60}m
+                        {Math.floor(mins/60) > 0 ? `${Math.floor(mins/60)}h ` : ""}{mins%60}m
                       </span>
                       <span style={{ fontSize: 10, color: "var(--color-text-faint)", fontFamily: "'Geist Mono', monospace" }}>{pct.toFixed(0)}%</span>
                     </div>
@@ -535,58 +546,56 @@ function DashboardPanel({ logs }: { logs: Log[] }) {
         )}
       </div>
 
-      {/* ── Productivity Score ── */}
-      {logs.length > 0 && (
-        <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: 14 }}>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--color-text-faint)", textTransform: "uppercase", marginBottom: 12 }}>Day Score</p>
-          {(() => {
-            const coveredHours = new Set(logs.map(l => l.hour)).size;
-            const coverage  = Math.min(coveredHours / 16, 1) * 100;
-            const score     = Math.round(prepScore * 0.4 + (avgInt / 5 * 100) * 0.3 + coverage * 0.2 + (maxGap < 60 ? 100 : 50) * 0.1);
-            const grade     = score >= 80 ? "A" : score >= 65 ? "B" : score >= 50 ? "C" : "D";
-            const gradeColor = score >= 80 ? "#6daa45" : score >= 65 ? "#4f98a3" : score >= 50 ? "#e8af34" : "#dd6974";
-            const items = [
-              { label: "Job Prep %",    val: prepScore,               color: "#a86fdf" },
-              { label: "Focus Level",   val: Math.round(avgInt / 5 * 100), color: intensityColor },
-              { label: "Hour Coverage", val: Math.round(coverage),    color: "#5591c7" },
-            ];
-            return (
-              <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-                <div style={{ textAlign: "center", flexShrink: 0 }}>
-                  <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: 36, fontWeight: 700, color: gradeColor, lineHeight: 1 }}>{grade}</div>
-                  <div style={{ fontSize: 10, color: "var(--color-text-faint)", marginTop: 4 }}>{score}/100</div>
-                </div>
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 7 }}>
-                  {items.map(item => (
-                    <div key={item.label}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                        <span style={{ fontSize: 10, color: "var(--color-text-faint)" }}>{item.label}</span>
-                        <span style={{ fontSize: 10, color: item.color, fontFamily: "'Geist Mono', monospace", fontWeight: 600 }}>{item.val}%</span>
-                      </div>
-                      <div style={{ height: 4, borderRadius: 2, background: "var(--color-surface-offset)" }}>
-                        <div style={{ height: "100%", width: `${item.val}%`, borderRadius: 2, background: item.color, transition: "width 400ms ease" }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
+      {/* ── Day Score ── */}
+      {logs.length > 0 && (() => {
+        const coveredHours = new Set(logs.map(l => l.hour)).size;
+        const coverage     = Math.min(coveredHours / 16, 1) * 100;
+        const score        = Math.round(prepScore * 0.4 + (avgInt / 5 * 100) * 0.3 + coverage * 0.2 + (maxGap < 60 ? 100 : 50) * 0.1);
+        const grade        = score >= 80 ? "A" : score >= 65 ? "B" : score >= 50 ? "C" : "D";
+        const gradeColor   = score >= 80 ? "#6daa45" : score >= 65 ? "#4f98a3" : score >= 50 ? "#e8af34" : "#dd6974";
+        const items = [
+          { label: "Job Prep %",    val: prepScore,               color: "#a86fdf" },
+          { label: "Focus Level",   val: Math.round(avgInt / 5 * 100), color: intensityColor },
+          { label: "Hour Coverage", val: Math.round(coverage),    color: "#5591c7" },
+        ];
+        return (
+          <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: 14 }}>
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--color-text-faint)", textTransform: "uppercase", marginBottom: 12 }}>Day Score</p>
+            <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+              <div style={{ textAlign: "center", flexShrink: 0 }}>
+                <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: 36, fontWeight: 700, color: gradeColor, lineHeight: 1 }}>{grade}</div>
+                <div style={{ fontSize: 10, color: "var(--color-text-faint)", marginTop: 4 }}>{score}/100</div>
               </div>
-            );
-          })()}
-        </div>
-      )}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 7 }}>
+                {items.map(item => (
+                  <div key={item.label}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                      <span style={{ fontSize: 10, color: "var(--color-text-faint)" }}>{item.label}</span>
+                      <span style={{ fontSize: 10, color: item.color, fontFamily: "'Geist Mono', monospace", fontWeight: 600 }}>{item.val}%</span>
+                    </div>
+                    <div style={{ height: 4, borderRadius: 2, background: "var(--color-surface-offset)" }}>
+                      <div style={{ height: "100%", width: `${item.val}%`, borderRadius: 2, background: item.color, transition: "width 400ms ease" }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
-      {/* ── Best entry ── */}
+      {/* ── Deepest Session ── */}
       {longestLog && (
         <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: 14 }}>
           <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--color-text-faint)", textTransform: "uppercase", marginBottom: 8 }}>Deepest Session</p>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: TAG_CONFIG[longestLog.tag].bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: TAG_CONFIG[longestLog.tag].bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>
               {TAG_CONFIG[longestLog.tag].emoji}
             </div>
-            <div style={{ flex: 1, overflow: "hidden" }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{longestLog.title}</div>
+            <div style={{ flex: 1, overflow: "hidden", minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{longestLog.title}</div>
               <div style={{ fontSize: 11, color: "var(--color-text-faint)", marginTop: 2 }}>
-                {formatTime12(longestLog.hour, longestLog.minute_from)} · {durationLabel(longestLog.hour, longestLog.minute_from, longestLog.hour, longestLog.minute_to)} · Intensity {longestLog.intensity}/5
+                {formatTime12(longestLog.hour, longestLog.minute_from)} · {durationLabel(longestLog.hour, longestLog.minute_from, longestLog.hour, longestLog.minute_to)} · {longestLog.intensity}/5
               </div>
             </div>
           </div>
@@ -596,28 +605,35 @@ function DashboardPanel({ logs }: { logs: Log[] }) {
   );
 }
 
-// ─── Day Nav ──────────────────────────────────────────────────────────────────
+// ─── Day Nav (scrollable on mobile) ───────────────────────────────────────────
 function DayNav({ selected, onSelect }: { selected: string; onSelect: (d: string) => void }) {
   const days: { label: string; sub: string; val: string }[] = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const val   = toDateStr(d);
-    const label = i === 0 ? "Today" : i === 1 ? "Yesterday" : d.toLocaleDateString("en-IN", { weekday: "short" });
+    const label = i === 0 ? "Today" : i === 1 ? "Yest." : d.toLocaleDateString("en-IN", { weekday: "short" });
     const sub   = d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
     days.push({ label, sub, val });
   }
   return (
-    <div style={{ display: "flex", gap: 4 }}>
+    <div style={{
+      display: "flex", gap: 4, overflowX: "auto",
+      WebkitOverflowScrolling: "touch",
+      scrollbarWidth: "none",
+      msOverflowStyle: "none",
+      paddingBottom: 2,
+    } as React.CSSProperties}>
       {days.map((d) => (
         <button key={d.val} onClick={() => onSelect(d.val)} style={{
-          padding: "5px 11px", borderRadius: 8, cursor: "pointer",
+          padding: "6px 10px", borderRadius: 8, cursor: "pointer", flexShrink: 0,
           border: `1px solid ${selected === d.val ? "var(--color-primary)" : "var(--color-border)"}`,
           background: selected === d.val ? "rgba(79,152,163,0.12)" : "transparent",
           color: selected === d.val ? "var(--color-primary)" : "var(--color-text-muted)",
           fontSize: 11, fontWeight: 600, transition: "all 140ms ease",
-          lineHeight: 1.4,
-        }}>
+          lineHeight: 1.4, minHeight: 40,
+          WebkitTapHighlightColor: "transparent",
+        } as React.CSSProperties}>
           {d.label}<br />
           <span style={{ fontWeight: 400, opacity: 0.6, fontSize: 10 }}>{d.sub}</span>
         </button>
@@ -629,8 +645,10 @@ function DayNav({ selected, onSelect }: { selected: string; onSelect: (d: string
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function JournalPage() {
   const [selectedDate, setSelectedDate] = useState(toDateStr(new Date()));
-  const [logs, setLogs]                 = useState<Log[]>([]);
-  const [loading, setLoading]           = useState(false);
+  const [logs,         setLogs]         = useState<Log[]>([]);
+  const [loading,      setLoading]      = useState(false);
+  // "log" = Logger tab, "stats" = Dashboard tab (mobile only)
+  const [activeTab, setActiveTab] = useState<"log" | "stats">("log");
 
   const fetchLogs = useCallback(async (date: string) => {
     setLoading(true);
@@ -676,62 +694,172 @@ export default function JournalPage() {
           --color-gold:            #e8af34;
         }
         html, body { height: 100%; }
-        body { font-family: 'Geist', sans-serif; background: var(--color-bg); color: var(--color-text); -webkit-font-smoothing: antialiased; }
+        body {
+          font-family: 'Geist', sans-serif;
+          background: var(--color-bg);
+          color: var(--color-text);
+          -webkit-font-smoothing: antialiased;
+          overflow-x: hidden;
+        }
         input:focus, textarea:focus {
           border-color: var(--color-primary) !important;
           box-shadow: 0 0 0 3px rgba(79,152,163,0.12);
         }
+        /* hide number spinners */
         input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button { opacity: 0.2; }
+        input[type=number]::-webkit-outer-spin-button { display: none; }
+        input[type=number] { -moz-appearance: textfield; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
-        button:hover { opacity: 0.85; }
+        button:active { opacity: 0.75 !important; }
+
+        /* ── Desktop (≥768px): side-by-side ── */
+        .layout-body {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+          min-height: 0;
+        }
+        .layout-columns {
+          display: none;
+        }
+        .mobile-tabs-bar {
+          display: flex;
+        }
+        .mobile-content {
+          display: flex;
+          flex: 1;
+          overflow-y: auto;
+          padding: 14px 14px 80px;
+          flex-direction: column;
+        }
+
+        @media (min-width: 768px) {
+          .layout-columns {
+            display: grid;
+            grid-template-columns: minmax(320px, 400px) 1fr;
+            flex: 1;
+            overflow: hidden;
+            min-height: 0;
+          }
+          .col-left {
+            border-right: 1px solid var(--color-border);
+            padding: 16px;
+            overflow-y: auto;
+          }
+          .col-right {
+            padding: 16px;
+            overflow-y: auto;
+          }
+          .mobile-tabs-bar {
+            display: none !important;
+          }
+          .mobile-content {
+            display: none !important;
+          }
+        }
+
+        /* hide daynav scrollbar on mobile */
+        .day-nav-scroll::-webkit-scrollbar { display: none; }
       `}</style>
 
-      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
 
         {/* ── Header ── */}
         <header style={{
-          borderBottom: "1px solid var(--color-border)", padding: "10px 20px",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          background: "var(--color-surface)", position: "sticky", top: 0, zIndex: 50,
-          gap: 16,
+          borderBottom: "1px solid var(--color-border)",
+          padding: "10px 14px",
+          display: "flex", flexDirection: "column", gap: 10,
+          background: "var(--color-surface)",
+          position: "sticky", top: 0, zIndex: 50,
         }}>
-          {/* Logo / App name */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-            <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-label="Hourly Journal">
-              <circle cx="13" cy="13" r="12" stroke="var(--color-primary)" strokeWidth="1.5"/>
-              <line x1="13" y1="4" x2="13" y2="13" stroke="var(--color-primary)" strokeWidth="1.8" strokeLinecap="round"/>
-              <line x1="13" y1="13" x2="18" y2="16" stroke="var(--color-text-muted)" strokeWidth="1.4" strokeLinecap="round"/>
-              <circle cx="13" cy="13" r="1.5" fill="var(--color-primary)"/>
-            </svg>
-            <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
-              <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.03em", color: "var(--color-text)" }}>Hourly Journal</span>
-              <span style={{ fontSize: 10, color: "var(--color-text-faint)", letterSpacing: "0.04em", fontWeight: 500 }}>100% ACCOUNTABILITY</span>
+          {/* Top row: logo + date */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+              <svg width="24" height="24" viewBox="0 0 26 26" fill="none" aria-label="Hourly Journal">
+                <circle cx="13" cy="13" r="12" stroke="var(--color-primary)" strokeWidth="1.5"/>
+                <line x1="13" y1="4" x2="13" y2="13" stroke="var(--color-primary)" strokeWidth="1.8" strokeLinecap="round"/>
+                <line x1="13" y1="13" x2="18" y2="16" stroke="var(--color-text-muted)" strokeWidth="1.4" strokeLinecap="round"/>
+                <circle cx="13" cy="13" r="1.5" fill="var(--color-primary)"/>
+              </svg>
+              <div style={{ lineHeight: 1.2 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.03em" }}>Hourly Journal</div>
+                <div style={{ fontSize: 10, color: "var(--color-text-faint)", letterSpacing: "0.04em" }}>100% ACCOUNTABILITY</div>
+              </div>
+            </div>
+            <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: 11, color: "var(--color-text-faint)" }}>
+              {new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
             </div>
           </div>
-          <DayNav selected={selectedDate} onSelect={setSelectedDate} />
+
+          {/* Day Nav — scrollable */}
+          <div className="day-nav-scroll" style={{
+            display: "flex", gap: 4, overflowX: "auto",
+            WebkitOverflowScrolling: "touch",
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          } as React.CSSProperties}>
+            <DayNav selected={selectedDate} onSelect={setSelectedDate} />
+          </div>
         </header>
 
-        {/* ── Body ── */}
-        <div style={{
-          display: "grid", gridTemplateColumns: "minmax(320px, 420px) 1fr",
-          flex: 1, height: "calc(100vh - 57px)", overflow: "hidden",
-        }}>
-          {/* LEFT — Logger */}
-          <div style={{ borderRight: "1px solid var(--color-border)", padding: 16, overflowY: "auto" }}>
+        {/* ── Desktop: side-by-side columns ── */}
+        <div className="layout-columns">
+          <div className="col-left">
             {loading
-              ? <div style={{ color: "var(--color-text-faint)", fontSize: 13, padding: 16, textAlign: "center" }}>Loading…</div>
+              ? <div style={{ color: "var(--color-text-faint)", fontSize: 13, padding: 24, textAlign: "center" }}>Loading…</div>
               : <LoggerPanel logs={logs} onAdd={handleAdd} onDelete={handleDelete} selectedDate={selectedDate} />
             }
           </div>
-
-          {/* RIGHT — Dashboard */}
-          <div style={{ padding: 16, overflowY: "auto" }}>
+          <div className="col-right">
             <DashboardPanel logs={logs} />
           </div>
+        </div>
+
+        {/* ── Mobile: single scrolling pane + bottom tabs ── */}
+        <div className="mobile-content">
+          {loading
+            ? <div style={{ color: "var(--color-text-faint)", fontSize: 13, padding: 24, textAlign: "center" }}>Loading…</div>
+            : activeTab === "log"
+              ? <LoggerPanel logs={logs} onAdd={handleAdd} onDelete={handleDelete} selectedDate={selectedDate} />
+              : <DashboardPanel logs={logs} />
+          }
+        </div>
+
+        {/* ── Mobile Bottom Tab Bar ── */}
+        <div className="mobile-tabs-bar" style={{
+          position: "fixed", bottom: 0, left: 0, right: 0,
+          background: "var(--color-surface)",
+          borderTop: "1px solid var(--color-border)",
+          display: "flex",
+          zIndex: 100,
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        }}>
+          {[
+            { id: "log" as const,   label: "Log",   icon: "✏️" },
+            { id: "stats" as const, label: "Stats",  icon: "📊" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                flex: 1, padding: "12px 0", border: "none", background: "transparent",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+                cursor: "pointer",
+                color: activeTab === tab.id ? "var(--color-primary)" : "var(--color-text-faint)",
+                fontSize: 10, fontWeight: 700, letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                transition: "color 140ms ease",
+                minHeight: 56,
+                WebkitTapHighlightColor: "transparent",
+              } as React.CSSProperties}
+            >
+              <span style={{ fontSize: 20, lineHeight: 1 }}>{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
         </div>
       </div>
     </>
