@@ -47,7 +47,7 @@ const TAG_GROUPS = [
 
 const INTENSITY_LABEL: Record<number, string> = { 1: "Low", 2: "Light", 3: "Medium", 4: "High", 5: "Deep" };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 function toDateStr(d: Date) { return d.toISOString().split("T")[0]; }
 function pad(n: number)     { return String(n).padStart(2, "0"); }
 function to24(h: number, ampm: "AM" | "PM") {
@@ -73,7 +73,7 @@ function durationLabel(startH: number, startM: number, endH: number, endM: numbe
   return `${h > 0 ? `${h}h ` : ""}${m > 0 ? `${m}m` : ""}`.trim();
 }
 
-// ─── TimeInput (12h picker) ───────────────────────────────────────────────────
+// ─── TimeInput (12h picker) ──────────────────────────────────────────────────
 function TimeInput({
   hour24, minute, onChange, label,
 }: {
@@ -374,7 +374,7 @@ function LoggerPanel({
   );
 }
 
-// ─── Stat Card ────────────────────────────────────────────────────────────────
+// ─── Stat Card ───────────────────────────────────────────────────────────────
 function StatCard({ label, value, sub, color }: { label: string; value: string | number; sub?: string; color?: string }) {
   return (
     <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: "14px 14px 12px" }}>
@@ -394,33 +394,27 @@ function DashboardPanel({ logs }: { logs: Log[] }) {
   const dominantTag = Object.entries(tagMins).sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0))[0]?.[0] as Tag | undefined;
   const longestLog  = [...logs].sort((a, b) => (minsOf(b.hour, b.minute_to) - minsOf(b.hour, b.minute_from)) - (minsOf(a.hour, a.minute_to) - minsOf(a.hour, a.minute_from)))[0];
 
-  // Prep focus score = (dsa + sysdes + project + prep) mins / total mins * 100
   const prepTags: Tag[] = ["dsa", "sysdes", "project", "prep"];
   const prepMins  = prepTags.reduce((a, t) => a + (tagMins[t] || 0), 0);
   const prepScore = totalMins ? Math.round((prepMins / totalMins) * 100) : 0;
   const workMins  = tagMins["work"] || 0;
-  const sleepMins = tagMins["sleep"] || 0;
 
-  // Hourly map
   const hourMap: Record<number, Log[]> = {};
   for (let h = 0; h < 24; h++) hourMap[h] = [];
   logs.forEach((l) => { if (hourMap[l.hour]) hourMap[l.hour].push(l); });
 
-  // Peak productive hour
   const peakHour = Object.entries(hourMap)
     .map(([h, ls]) => ({ h: Number(h), score: ls.reduce((a, l) => a + l.intensity, 0) }))
     .sort((a, b) => b.score - a.score)[0];
 
   const sorted = [...logs].sort((a, b) => minsOf(a.hour, a.minute_from) - minsOf(b.hour, b.minute_from));
 
-  // Longest streak of unlogged minutes
   let maxGap = 0;
   for (let i = 1; i < sorted.length; i++) {
     const gap = minsOf(sorted[i].hour, sorted[i].minute_from) - minsOf(sorted[i-1].hour, sorted[i-1].minute_to);
     if (gap > maxGap) maxGap = gap;
   }
 
-  // Intensity color
   const intensityColor = avgInt >= 4 ? "#6daa45" : avgInt >= 3 ? "#4f98a3" : avgInt >= 2 ? "#e8af34" : "#dd6974";
 
   return (
@@ -446,7 +440,6 @@ function DashboardPanel({ logs }: { logs: Log[] }) {
             </span>
           )}
         </div>
-        {/* Timeline strip */}
         <div style={{ position: "relative", height: 32, background: "var(--color-surface-offset)", borderRadius: 8, overflow: "hidden" }}>
           {sorted.map((log) => {
             const startPct = (minsOf(log.hour, log.minute_from) / 1440) * 100;
@@ -459,7 +452,6 @@ function DashboardPanel({ logs }: { logs: Log[] }) {
               }} />
             );
           })}
-          {/* Now needle */}
           {(() => {
             const n = new Date();
             const pct = (minsOf(n.getHours(), n.getMinutes()) / 1440) * 100;
@@ -471,7 +463,6 @@ function DashboardPanel({ logs }: { logs: Log[] }) {
             <span key={i} style={{ fontSize: 9, color: "var(--color-text-faint)", fontFamily: "'Geist Mono', monospace" }}>{l}</span>
           ))}
         </div>
-        {/* Legend */}
         <div style={{ display: "flex", gap: 10, marginTop: 10, flexWrap: "wrap" }}>
           {(Object.keys(TAG_CONFIG) as Tag[]).filter(t => tagMins[t]).map(t => (
             <div key={t} style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -548,7 +539,6 @@ function DashboardPanel({ logs }: { logs: Log[] }) {
       {logs.length > 0 && (
         <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: 14 }}>
           <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--color-text-faint)", textTransform: "uppercase", marginBottom: 12 }}>Day Score</p>
-          {/* Score = weighted: 40% prep time, 30% focus avg, 20% coverage, 10% consistency */}
           {(() => {
             const coveredHours = new Set(logs.map(l => l.hour)).size;
             const coverage  = Math.min(coveredHours / 16, 1) * 100;
@@ -556,9 +546,9 @@ function DashboardPanel({ logs }: { logs: Log[] }) {
             const grade     = score >= 80 ? "A" : score >= 65 ? "B" : score >= 50 ? "C" : "D";
             const gradeColor = score >= 80 ? "#6daa45" : score >= 65 ? "#4f98a3" : score >= 50 ? "#e8af34" : "#dd6974";
             const items = [
-              { label: "Job Prep %",    val: prepScore,               max: 100, color: "#a86fdf" },
-              { label: "Focus Level",   val: Math.round(avgInt / 5 * 100), max: 100, color: intensityColor },
-              { label: "Hour Coverage", val: Math.round(coverage),    max: 100, color: "#5591c7" },
+              { label: "Job Prep %",    val: prepScore,               color: "#a86fdf" },
+              { label: "Focus Level",   val: Math.round(avgInt / 5 * 100), color: intensityColor },
+              { label: "Hour Coverage", val: Math.round(coverage),    color: "#5591c7" },
             ];
             return (
               <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
@@ -709,14 +699,18 @@ export default function JournalPage() {
           background: "var(--color-surface)", position: "sticky", top: 0, zIndex: 50,
           gap: 16,
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-label="Hourly Journal">
-              <rect x="3" y="3" width="18" height="18" rx="4" stroke="var(--color-primary)" strokeWidth="1.5"/>
-              <line x1="3" y1="9" x2="21" y2="9" stroke="var(--color-primary)" strokeWidth="1.5"/>
-              <line x1="9" y1="9" x2="9" y2="21" stroke="var(--color-border)" strokeWidth="1"/>
-              <circle cx="15" cy="15" r="2" fill="var(--color-primary)"/>
+          {/* Logo / App name */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+            <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-label="Hourly Journal">
+              <circle cx="13" cy="13" r="12" stroke="var(--color-primary)" strokeWidth="1.5"/>
+              <line x1="13" y1="4" x2="13" y2="13" stroke="var(--color-primary)" strokeWidth="1.8" strokeLinecap="round"/>
+              <line x1="13" y1="13" x2="18" y2="16" stroke="var(--color-text-muted)" strokeWidth="1.4" strokeLinecap="round"/>
+              <circle cx="13" cy="13" r="1.5" fill="var(--color-primary)"/>
             </svg>
-            <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: "-0.02em" }}>hourly</span>
+            <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
+              <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.03em", color: "var(--color-text)" }}>Hourly Journal</span>
+              <span style={{ fontSize: 10, color: "var(--color-text-faint)", letterSpacing: "0.04em", fontWeight: 500 }}>100% ACCOUNTABILITY</span>
+            </div>
           </div>
           <DayNav selected={selectedDate} onSelect={setSelectedDate} />
         </header>
@@ -724,7 +718,7 @@ export default function JournalPage() {
         {/* ── Body ── */}
         <div style={{
           display: "grid", gridTemplateColumns: "minmax(320px, 420px) 1fr",
-          flex: 1, height: "calc(100vh - 53px)", overflow: "hidden",
+          flex: 1, height: "calc(100vh - 57px)", overflow: "hidden",
         }}>
           {/* LEFT — Logger */}
           <div style={{ borderRight: "1px solid var(--color-border)", padding: 16, overflowY: "auto" }}>
