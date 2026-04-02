@@ -1,34 +1,39 @@
-export const dynamic = 'force-dynamic'; // ← add this
-
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";      // ← update import
+import sql from "@/lib/db";
+import type { LogUpdate } from "@/lib/schema";
 
-type RouteContext = {
-  params: Promise<{ id: string }>;
-};
+type RouteContext = { params: Promise<{ id: string }> };
 
-export async function PATCH(req: NextRequest, { params }: RouteContext) {
-  const sql = getDb();                  // ← create inside handler
-  const { id } = await params;
-  const body = await req.json();
+// PATCH /api/logs/:id
+export async function PATCH(req: NextRequest, ctx: RouteContext) {
+  const { id } = await ctx.params;
+  const body = (await req.json()) as LogUpdate;
+
   const result = await sql`
     UPDATE logs SET
-      title       = ${body.title},
-      note        = ${body.note},
-      tag         = ${body.tag},
-      intensity   = ${body.intensity},
-      minute_from = ${body.minute_from},
-      minute_to   = ${body.minute_to},
+      title       = COALESCE(${body.title ?? null}, title),
+      note        = COALESCE(${body.note ?? null}, note),
+      tag         = COALESCE(${body.tag ?? null}, tag),
+      intensity   = COALESCE(${body.intensity ?? null}, intensity),
+      minute_from = COALESCE(${body.minute_from ?? null}, minute_from),
+      minute_to   = COALESCE(${body.minute_to ?? null}, minute_to),
       updated_at  = now()
     WHERE id = ${id}
     RETURNING *
   `;
+
+  if (result.length === 0) {
+    return NextResponse.json({ error: "Log not found" }, { status: 404 });
+  }
+
   return NextResponse.json(result[0]);
 }
 
-export async function DELETE(_: NextRequest, { params }: RouteContext) {
-  const sql = getDb();                  // ← create inside handler
-  const { id } = await params;
+// DELETE /api/logs/:id
+export async function DELETE(_req: NextRequest, ctx: RouteContext) {
+  const { id } = await ctx.params;
+
   await sql`DELETE FROM logs WHERE id = ${id}`;
+
   return NextResponse.json({ success: true });
 }
